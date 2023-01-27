@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgresql
+spec:
+  selector:
+    matchLabels:
+      app: postgresql 
+  serviceName: "postgresql"
+  template:
+    metadata:
+      labels:
+        app: postgresql 
+    spec:
+      containers:
+      - name: postgresql-com
+        image: postgres
+        env:
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: postgresql-creds
+              key: username
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgresql-creds
+              key: password
+        - name: PGDATA
+          value: "/data/postgresql/pgdata"
+        volumeMounts:
+        - name: postgresql-vol
+          mountPath: "/data/postgresql"
+  volumeClaimTemplates:
+  - metadata:
+      name: postgresql-vol
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      storageClassName: "standard"
+      resources:
+        requests:
+          storage: 500Mi
